@@ -146,7 +146,8 @@ class Visualizer():
     def save_images_to_dir(self, image_dir, visuals, image_path):
         short_path = ntpath.basename(image_path[0])
         name = os.path.splitext(short_path)[0]
-        full_path_strs = image_path[0].split('/')
+        #full_path_strs = image_path[0].split('/')
+        full_path_strs = image_path[0].split(os.sep)
 
         save_dir = os.path.join(image_dir, 'img_fake_only', full_path_strs[-3], full_path_strs[-2])
         self.mkdir(save_dir)
@@ -209,7 +210,8 @@ class Visualizer():
     def save_seg_images_to_dir(self, image_dir, visuals, image_path):
         short_path = ntpath.basename(image_path[0])
         name = os.path.splitext(short_path)[0]
-        full_path_strs = image_path[0].split('/')
+        #full_path_strs = image_path[0].split('/')
+        full_path_strs = image_path[0].split('\\')
 
         save_dir = os.path.join(image_dir, 'img_fake_only', full_path_strs[-3], full_path_strs[-2])
         self.mkdir(save_dir)

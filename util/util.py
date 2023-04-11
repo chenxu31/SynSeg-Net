@@ -16,7 +16,7 @@ def tensor2im(image_tensor, imtype=np.uint8):
 
 def tensor2seg(image_tensor, imtype=np.uint8):
     image_numpy = image_tensor[0].cpu().float().numpy()
-    image_numpy = np.transpose(image_numpy, (1, 2, 0)) *20
+    image_numpy = np.transpose(image_numpy, (1, 2, 0)) * 255.0
     return image_numpy.astype(imtype)
 
 def diagnose_network(net, name='network'):

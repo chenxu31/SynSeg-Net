@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import torch
 import torch.nn as nn
 from torch.nn import init
@@ -5,7 +7,7 @@ import functools
 from torch.autograd import Variable
 import numpy as np
 import torchsrc
-import FCNGCN
+import models.FCNGCN as FCNGCN
 ###############################################################################
 # Functions
 ###############################################################################
@@ -32,7 +34,7 @@ def get_norm_layer(norm_type='instance'):
     return norm_layer
 
 
-def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropout=False, gpu_ids=[]):
+def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropout=False, gpu_ids=[], task="", type=""):
     netG = None
     use_gpu = len(gpu_ids) > 0
     norm_layer = get_norm_layer(norm_type=norm)
@@ -52,8 +54,11 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
         netG = FCNGCN.FCNGCN(num_input_chanel=input_nc, num_classes=output_nc)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % which_model_netG)
+
+    netG.task = task
+    netG.type = type ####----
     if len(gpu_ids) > 0:
-        netG.cuda(device_id=gpu_ids[0])
+        netG.cuda(gpu_ids[0])
     netG.apply(weights_init)
     return netG
 
@@ -74,7 +79,7 @@ def define_D(input_nc, ndf, which_model_netD,
         raise NotImplementedError('Discriminator model name [%s] is not recognized' %
                                   which_model_netD)
     if use_gpu:
-        netD.cuda(device_id=gpu_ids[0])
+        netD.cuda(gpu_ids[0])
     netD.apply(weights_init)
     return netD
 
@@ -178,15 +183,29 @@ class ResnetGenerator(nn.Module):
                       nn.ReLU(True)]
         model += [nn.ReflectionPad2d(3)]
         model += [nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0)]
-        model += [nn.Tanh()]
+        #model += [nn.Tanh()] ####----
 
         self.model = nn.Sequential(*model)
 
     def forward(self, input):
         if self.gpu_ids and isinstance(input.data, torch.cuda.FloatTensor):
-            return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
+            ret = nn.parallel.data_parallel(self.model, input, self.gpu_ids)
         else:
-            return self.model(input)
+            ret = self.model(input)
+
+        if self.type != "seg":
+            if self.task == "mmwhs":
+                if self.type == "A":
+                    ret = torch.clamp(ret, -2.8, 3.2)
+                elif self.type == "B":
+                    ret = torch.clamp(ret, -1.8, 4.4)
+                else:
+                    pass
+            else:
+                ret = torch.clamp(ret, -1., 1.)
+
+
+        return ret
 
 
 # Define a resnet block

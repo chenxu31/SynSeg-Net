@@ -19,12 +19,29 @@ def CreateDataset(opt):
     elif opt.dataset_mode == 'yh_seg':
         from data.yh_seg_dataset import yhSegDataset
         dataset = yhSegDataset()
+    elif opt.dataset_mode == 'cmf_seg':
+        from data.cmf_seg_dataset import cmfSegDataset
+        dataset = cmfSegDataset()
+    elif opt.dataset_mode == 'mmwhs_seg':
+        from data.mmwhs_seg_dataset import mmwhsSegDataset
+        dataset = mmwhsSegDataset()
+    elif opt.dataset_mode == 'prostate_seg':
+        from data.prostate_seg_dataset import prostateSegDataset
+        dataset = prostateSegDataset()
+    elif opt.dataset_mode == 'prostate_ck_seg':
+        from data.prostate_ck_seg_dataset import prostate_ckSegDataset
+        dataset = prostate_ckSegDataset()
     elif opt.dataset_mode == 'yh_seg_spleen':
         from data.yh_seg_spleenonly_dataset import yhSegDatasetSpleenOnly
         dataset = yhSegDatasetSpleenOnly()
     elif opt.dataset_mode == 'yh_test_seg':
         from data.yh_test_seg_dataset import yhTestSegDataset
-        dataset = yhTestSegDataset()
+    elif opt.dataset_mode == 'cmf_test':
+        from data.cmf_test_dataset import cmfTestDataset
+        dataset = cmfTestDataset()
+    elif opt.dataset_mode == 'cmf_test_seg':
+        from data.cmf_test_seg_dataset import cmfTestSegDataset
+        dataset = cmfTestSegDataset()
     else:
         raise ValueError("Dataset [%s] not recognized." % opt.dataset_mode)
 

@@ -17,7 +17,7 @@ import torch.nn.functional as F
 import tqdm
 import skimage
 import random
-from utils.image_pool import ImagePool
+from torchsrc.utils.image_pool import ImagePool
 import torchsrc
 
 def saveOneImg(img,path,cate_name,sub_name,surfix,):
@@ -557,11 +557,11 @@ class Trainer(object):
                 loss = loss_G_GAN + loss_G_L2*100
 
                 fv.write('--- epoch=%d, batch_idx=%d, D_loss=%.4f, G_loss=%.4f, L2_loss = %.4f \n' % (
-                    self.epoch, batch_idx, self.loss_D.data[0], loss_G_GAN.data[0],loss_G_L2.data[0] ))
+                    self.epoch, batch_idx, self.loss_D.item(), loss_G_GAN.item(),loss_G_L2.item() ))
 
                 if batch_idx%10 == 0:
                     print('--- epoch=%d, batch_idx=%d, D_loss=%.4f, G_loss=%.4f, L2_loss_loss = %.4f  \n' % (
-                    self.epoch, batch_idx, self.loss_D.data[0], loss_G_GAN.data[0],loss_G_L2.data[0] ))
+                    self.epoch, batch_idx, self.loss_D.item(), loss_G_GAN.item(),loss_G_L2.item() ))
             else:
                 if self.loss_fun == 'cross_entropy':
                     arr = np.array([1,10])
@@ -574,8 +574,8 @@ class Trainer(object):
             loss.backward()
             self.optim.step()
             if batch_idx % 10 == 0:
-                print('epoch=%d, batch_idx=%d, loss=%.4f \n'%(self.epoch,batch_idx,loss.data[0]))
-                fv.write('epoch=%d, batch_idx=%d, loss=%.4f \n'%(self.epoch,batch_idx,loss.data[0]))
+                print('epoch=%d, batch_idx=%d, loss=%.4f \n'%(self.epoch,batch_idx,loss.item()))
+                fv.write('epoch=%d, batch_idx=%d, loss=%.4f \n'%(self.epoch,batch_idx,loss.item()))
 
 
         fv.close()

@@ -12,6 +12,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 import sys
 import skimage
+import pdb
 
 def CrossEntropyLoss2d(inputs, targets, weight=None, size_average=True):
     lossval = 0
@@ -42,7 +43,7 @@ def cross_entropy2d(input, target, weight=None, size_average=True):
     # log_p: (n, c, h, w)
     log_p = F.log_softmax(input)
     # log_p: (n*h*w, c)
-    log_p = log_p.transpose(1, 2).transpose(2, 3).contiguous().view(-1, c)
+    log_p = log_p.transpose(1, 2).transpose(2, 3).contiguous()#.view(-1, c)
     log_p = log_p[target.view(n, h, w, 1).repeat(1, 1, 1, c) >= 0]
     log_p = log_p.view(-1, c)
     # target: (n*h*w,)
@@ -90,6 +91,11 @@ class CycleSEGModel(BaseModel):
         return 'CycleSEGModel'
 
     def initialize(self, opt):
+        # A: source domain
+        # B: target domain
+        # netG_A: source-to-target generator
+        # netG_B: target-to-source generator
+
         BaseModel.initialize(self, opt)
 
         nb = opt.batchSize
@@ -106,12 +112,12 @@ class CycleSEGModel(BaseModel):
         # Code (paper): G_A (G), G_B (F), D_A (D_Y), D_B (D_X)
 
         self.netG_A = networks.define_G(opt.input_nc, opt.output_nc,
-                                        opt.ngf, opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids)
+                                        opt.ngf, opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids, task=opt.task, type="A")
         self.netG_B = networks.define_G(opt.output_nc, opt.input_nc,
-                                        opt.ngf, opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids)
+                                        opt.ngf, opt.which_model_netG, opt.norm, not opt.no_dropout, self.gpu_ids, task=opt.task, type="B")
 
         self.netG_seg = networks.define_G(opt.input_nc_seg, opt.output_nc_seg,
-                                        opt.ngf, opt.which_model_netSeg, opt.norm, not opt.no_dropout, self.gpu_ids)
+                                        opt.ngf, opt.which_model_netSeg, opt.norm, not opt.no_dropout, self.gpu_ids, task=opt.task, type="seg")
 
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
@@ -238,11 +244,12 @@ class CycleSEGModel(BaseModel):
         # Backward cycle loss
         self.rec_B = self.netG_A.forward(self.fake_A)
         self.loss_cycle_B = self.criterionCycle(self.rec_B, self.real_B) * lambda_B
+
         # Segmentation loss
-        self.seg_fake_B = self.netG_seg.forward(self.fake_B)
+        self.seg_fake_B = self.netG_seg.forward(self.fake_B.detach())
         if self.opt.seg_norm == 'DiceNorm':
             self.loss_seg = dice_loss_norm(self.seg_fake_B, self.real_Seg)
-            self.loss_seg = self.loss_seg
+            #self.loss_seg = self.loss_seg
         elif self.opt.seg_norm == 'CrossEntropy':
             arr = np.array(self.opt.crossentropy_weight)
             weight = torch.from_numpy(arr).cuda().float()
@@ -255,10 +262,6 @@ class CycleSEGModel(BaseModel):
     def optimize_parameters(self):
         # forward
         self.forward()
-
-
-
-
 
         # real_root_dir = '/home-local/Cycle_Deep/test_visulize'
         # for ii in range(len(self.image_paths)):
@@ -287,16 +290,16 @@ class CycleSEGModel(BaseModel):
         self.optimizer_D_B.step()
 
     def get_current_errors(self):
-        D_A = self.loss_D_A.data[0]
-        G_A = self.loss_G_A.data[0]
-        Cyc_A = self.loss_cycle_A.data[0]
-        D_B = self.loss_D_B.data[0]
-        G_B = self.loss_G_B.data[0]
-        Cyc_B = self.loss_cycle_B.data[0]
-        Seg_B = self.loss_seg.data[0]
+        D_A = self.loss_D_A.item()
+        G_A = self.loss_G_A.item()
+        Cyc_A = self.loss_cycle_A.item()
+        D_B = self.loss_D_B.item()
+        G_B = self.loss_G_B.item()
+        Cyc_B = self.loss_cycle_B.item()
+        Seg_B = self.loss_seg.item()
         if self.opt.identity > 0.0:
-            idt_A = self.loss_idt_A.data[0]
-            idt_B = self.loss_idt_B.data[0]
+            idt_A = self.loss_idt_A.item()
+            idt_B = self.loss_idt_B.item()
             return OrderedDict([('D_A', D_A), ('G_A', G_A), ('Cyc_A', Cyc_A), ('idt_A', idt_A),
                                 ('D_B', D_B), ('G_B', G_B), ('Cyc_B', Cyc_B), ('idt_B', idt_B)])
         else:
