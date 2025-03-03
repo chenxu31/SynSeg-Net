@@ -30,7 +30,9 @@ def CreateDataset(opt):
         dataset = prostateSegDataset()
     elif opt.dataset_mode == 'prostate_ck_seg':
         from data.prostate_ck_seg_dataset import prostate_ckSegDataset
-        dataset = prostate_ckSegDataset()
+    elif opt.dataset_mode == 'brats_seg':
+        from data.brats_seg_dataset import bratsSegDataset
+        dataset = bratsSegDataset()
     elif opt.dataset_mode == 'yh_seg_spleen':
         from data.yh_seg_spleenonly_dataset import yhSegDatasetSpleenOnly
         dataset = yhSegDatasetSpleenOnly()

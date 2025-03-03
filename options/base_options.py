@@ -52,6 +52,8 @@ class BaseOptions():
         self.parser.add_argument('--weight_7', type=int, default=1, help='weight of stomach')
         self.parser.add_argument('--test_CT_dir', type=str, default='/scratch/huoy1/projects/DeepLearning/Cycle_Deep/Data2D_bothimgandseg_andmask/CT/img',help='for test seg')
         self.parser.add_argument('--.', type=int, default=0, help='custom_sub_dir')
+        self.parser.add_argument('--src_modality', type=str, default="", help="source modality")
+        self.parser.add_argument('--dst_modality', type=str, default="", help="target modality")
 
 
         self.initialized = True
@@ -75,6 +77,8 @@ class BaseOptions():
         else:
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
             self.opt.device = torch.device("cpu")
+
+        #os.environ["CUDA_LAUNCH_BLOCKING"] = "1" ####----
 
         self.opt.gpu_ids = [0,]
 
