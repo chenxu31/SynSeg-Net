@@ -17,7 +17,7 @@ import sys
 if platform.system() == "Windows":
     sys.path.append(r"E:\我的坚果云\sourcecode\python\util")
 else:
-    sys.path.append("/home/chenxu31/sourcecode/python/util")
+    sys.path.append("/home/chenxu/我的坚果云/sourcecode/python/util")
 import common_net_pt as common_net
 import common_brats_goat as common_brats
 import common_metrics
